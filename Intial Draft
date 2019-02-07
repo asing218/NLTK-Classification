@@ -1,0 +1,312 @@
+# -*- coding: utf-8 -*-
+"""
+Spyder Editor
+
+This is a temporary script file.
+"""
+
+import nltk, re, pprint
+from nltk import word_tokenize
+from urllib import request
+from nltk import sent_tokenize
+from nltk.corpus import stopwords
+import numpy as np
+import random
+
+##url1 Benjamin Franklin Autobiography
+url = "http://www.gutenberg.org/cache/epub/148/pg148.txt"
+response = request.urlopen(url)
+raw = response.read().decode('utf8')
+raw1=raw.rstrip()
+raw1=raw1.lower()
+stop_words = set(stopwords.words('english')) 
+word_tokens = word_tokenize(raw1) 
+filtered_sentence = [w for w in word_tokens if not w in stop_words] 
+filtered_sentence = [] 
+for w in word_tokens: 
+    if w not in stop_words: 
+        filtered_sentence.append(w) 
+words = [word for word in filtered_sentence if word.isalpha()]
+from nltk.tokenize.treebank import TreebankWordDetokenizer as Detok
+detokenizer = Detok()
+words2=detokenizer.detokenize(words)
+x1=[]
+#x=0
+#i=0
+#n=150
+#while x<200:
+#    space=""
+#    words3=words2.split(" ")[i:n]
+#    for word in words3:
+#        space=word+" "+space
+#    space=space+',A'
+#    x1.append(space)
+#    i+=150
+#    n+=150
+#    x+=1
+for i in range (0,200*150,150):
+     x1.append(words[i:i+150])
+a=[0]*200
+
+##url2 ALice's Adeventures in wonderland
+url1 = "http://www.gutenberg.org/cache/epub/345/pg345.txt"
+response = request.urlopen(url1)
+law = response.read().decode('utf8')
+law1=law.rstrip()
+law1=law1.lower()
+stop_words1 = set(stopwords.words('english')) 
+word_tokens1 = word_tokenize(law1) 
+filtered_sentence1 = [w for w in word_tokens1 if not w in stop_words1] 
+filtered_sentence1 = [] 
+for w in word_tokens1: 
+    if w not in stop_words1: 
+        filtered_sentence1.append(w) 
+wordsAlice = [word for word in filtered_sentence1 if word.isalpha()]
+detokenizer1 = Detok()
+wordsAlice1=detokenizer1.detokenize(wordsAlice)
+x2=[]
+#x=0
+#i=0
+#n=150
+#while x<200:
+#    space1=""
+#    wordsAlice2=wordsAlice1.split(" ")[i:n]
+#    for word in wordsAlice2:
+#        space1=word+" "+space1
+#    space1=space1
+#    x2.append(space1)
+#    i+=150
+#    n+=150
+#    x+=1
+for i in range (0,200*150,150):
+     x2.append(words[i:i+150])
+b=[1]*200
+#print(x2)
+
+#url3
+url2="http://www.gutenberg.org/cache/epub/852/pg852.txt"
+response = request.urlopen(url2)
+saw = response.read().decode('utf8')
+saw1=saw.rstrip()
+saw1=saw1.lower()
+stop_words2 = set(stopwords.words('english')) 
+word_tokens2 = word_tokenize(saw1) 
+filtered_sentence2 = [w for w in word_tokens2 if not w in stop_words2] 
+filtered_sentence2 = [] 
+for w in word_tokens2: 
+    if w not in stop_words2: 
+        filtered_sentence2.append(w) 
+wordsDemo = [word for word in filtered_sentence2 if word.isalpha()]
+detokenizer2 = Detok()
+wordsDemo1=detokenizer2.detokenize(wordsDemo)
+x3=[]
+#x=0
+#i=0
+#n=150
+#while x<200:
+#    space2=""
+#    wordsDemo2=wordsDemo1.split(" ")[i:n]
+#    for word in wordsDemo2:
+#        space2=word+" "+space2
+#    space2=space2
+#    x3.append(space2)
+#    i+=150
+#    n+=150
+#    x+=1
+for i in range (0,200*150,150):
+     x3.append(words[i:i+150])
+c=[2]*200
+#print(x3)
+
+#Merging Books and Labels
+Merge=x1+x2+x3
+#Merge=[" ".join([str(c) for c in lst]) for lst in Merge]
+import pandas as pd
+#Merge=pd.DataFrame(Merge)
+
+Documents=np.asarray(Merge)
+Label=a+b+c
+Label=np.asarray(Label)
+#Label=pd.DataFrame(Label)
+
+##print(Label.shape)
+##print(Merge.shape)
+DocMerge=np.append(Documents,Label[:,None],axis=1)
+#DocMerge=pd.concat([Merge,Label],axis=1)
+#DocMerge=DocMerge.sample(frac=1)
+#lsplit=DocMerge.iloc[:,-1].values
+#Dsplit=DocMerge.iloc[:,0:1].values
+#DiffMerge=DocMerge[:,-1:]
+#print(DiffMerge)
+import random
+random.shuffle(DocMerge)
+AfterLabel=DocMerge[:,-1:]
+AfterDoc=DocMerge[:,:150]
+#AfterDoc=[" ".join([str(c) for c in lst]) for lst in AfterDoc]
+
+#Dsplit=[" ".join(c) for c in Dsplit]
+
+#
+##converting to dataframe
+df=pd.DataFrame(AfterDoc)
+#print(df)
+y=pd.DataFrame(AfterLabel)
+#print(y.shape)
+df=[" ".join(c) for c in df.values]
+df=pd.DataFrame(df)
+#print(df.shape)
+#df=pd.DataFrame(df)
+#y=[" ".join(c) for c in y.values]
+#print(a.shape)
+#merge=np.append(x1,a)
+#print(merge[:-1])
+#print(merge.shape)
+#BookMerge=x1+x2+x3
+#BookMerge=np.asarray(BookMerge)
+#print(BookMerge.shape)
+#LabelMerge=a+b+c
+#LabelMerge=np.asarray(LabelMerge)
+#Merge=np.append(BookMerge,LabelMerge)
+#print(Merge[:, -1:])
+from sklearn.model_selection import train_test_split
+from sklearn import svm
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from  sklearn.metrics  import accuracy_score
+#count_vect = CountVectorizer()
+#X_train_counts = (count_vect.fit_transform(df[0]))
+#X=X_train_counts.toarray()
+#print(X)
+#print(X_train)
+#X=X_train_counts.toarray()
+#print(X_train_counts)
+##X=X.reshape(1,-1)
+##y_train=y_train.reshape(-1,1)
+ 
+#Bagofwords
+test_bag=['Benjamin',
+          'Dracula']
+np_bag=np.array(test_bag)
+
+np_bag1=pd.DataFrame(np_bag)
+count_vect = CountVectorizer()
+X_train_counts = (count_vect.fit_transform(df[0]))
+bagtest=(count_vect.transform(np_bag1[0]))
+print(bagtest)
+X_train, X_test, y_train, y_test = train_test_split(X_train_counts,y,test_size=.10 )
+clf = MultinomialNB().fit(X_train, y_train) 
+predicted=clf.predict(bagtest)
+print(predicted)
+#print(accuracy_score(y_test,predicted))
+#
+##k neighbour BOW
+#from sklearn.neighbors import KNeighborsClassifier  
+#classifier = KNeighborsClassifier(n_neighbors=5)  
+#cl=classifier.fit(X_train, y_train)
+#predict=cl.predict(X_test)
+#print(accuracy_score(y_test,predict))
+#TFIDF
+vectorizer=TfidfVectorizer()
+X=vectorizer.fit_transform(df[0])
+
+test_arr=[' ',
+          'Dracula']
+np_tarr=np.array(test_arr)
+#print(type(np_tarr))
+#print(np_tarr.shape)
+np_tarr1=pd.DataFrame(np_tarr)
+x1=vectorizer.transform(np_tarr1[0])
+
+tfidf_transformer = TfidfTransformer()
+X_train_tfidf = tfidf_transformer.fit_transform(X)
+
+x2 = tfidf_transformer.fit_transform(x1)
+#print(x2)
+#X_test=x21
+X_train, X_test, y_train, y_test = train_test_split(X_train_tfidf,y,test_size=.20 )
+clf = MultinomialNB().fit(X_train, y_train) 
+
+predicted=clf.predict(X_test)
+#print(predicted)
+#print(accuracy_score(y_test,predicted))
+
+
+#print(predicted)
+
+
+##TFIDF neighbour 
+#from sklearn.neighbors import KNeighborsClassifier  
+#classifier = KNeighborsClassifier(n_neighbors=5)  
+#c1=classifier.fit(X_train, y_train)
+#predic=c1.predict(X_test)
+#print(accuracy_score(y_test,predic))
+
+
+
+##model=svm.SVC(kernel='rbf',C=1,gamma=0.1) model.fit(train_X, train_Y) prediction1=model.predict(test_X) print('Accuracy for rbf SVM is ', metrics.accuracy_score(prediction1,test_Y))
+#
+##print(type(LabelMerge))
+##print(LabelMerge)
+## print(len(words))
+##words=sent_tokenize(words)
+#print(words)
+#detoken=MosesDetokenizer('en')
+#words1=detoken(words)
+#print(words)
+#print(type(words1))
+
+#import re
+
+#print(type(words2))
+
+#x1=x1.append(a)
+#print(x1)
+
+
+#clf = MultinomialNB().fit(X_train_tfidf, y_train)
+#    for i in x1:
+#        print(i[:151])
+#x1=[]
+#for i in range (0,200*150,150):
+#     x1.append(words[i:i+150])
+##     x1=' '.join(word[i] for word in x1)
+##print(type(x1))
+##for i in range (0,200*150,150):
+#for i in range(0,200*150,150):
+#        x1[i]=' '.join(word[i:i+150] for word in x1)
+#        
+#print(x1)
+
+
+#from numpy import array
+#a = array(words2)
+#print(a)
+#print(type(a))
+#print(words2)
+#str=' '.join(words2)
+#print()
+#print(type(str))
+#print(words1)
+#print(type(words1))
+
+#i=0
+#while i<10:
+#    sentence1=' '.join(words2)
+#    
+#    i=i+1
+#    
+#print(sentence1)
+
+#i=0
+#while j<150:
+#    r=words1[:]
+#while i<200:
+#    j=150
+#    r=words1[:j]
+#    r1=detokenizer.detokenize(r)
+#    print(r1)
+#    i=i+1
+#    j=j+150
+#print(type(r1)
