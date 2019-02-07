@@ -1,0 +1,201 @@
+# -*- coding: utf-8 -*-
+"""
+Spyder Editor
+
+This is a temporary script file.
+"""
+#importing all the required modules(packages)
+import nltk, re, pprint
+from nltk import word_tokenize
+from urllib import request
+from nltk import sent_tokenize
+from nltk.corpus import stopwords
+import numpy as np
+import random
+
+##url1 Benjamin Franklin Autobiography
+url = "http://www.gutenberg.org/cache/epub/148/pg148.txt"
+response = request.urlopen(url)
+raw = response.read().decode('utf8')
+#stripping the text
+raw1=raw.rstrip()
+#converting the text into lower case
+raw1=raw1.lower()
+#removing all the stopwords
+stop_words = set(stopwords.words('english')) 
+#performing tokenisation
+word_tokens = word_tokenize(raw1) 
+filtered_sentence = [w for w in word_tokens if not w in stop_words] 
+filtered_sentence = [] 
+for w in word_tokens: 
+    if w not in stop_words: 
+        filtered_sentence.append(w) 
+words = [word for word in filtered_sentence if word.isalpha()]
+from nltk.tokenize.treebank import TreebankWordDetokenizer as Detok
+detokenizer = Detok()
+words2=detokenizer.detokenize(words)
+x1=[]
+
+#For Loop for the segmentation into 200 rows and 150 columns
+for i in range (0,200*150,150):
+     x1.append(words[i:i+150])
+a=[0]*200
+
+##url2 ALice's Adeventures in wonderland
+url1 = "http://www.gutenberg.org/cache/epub/345/pg345.txt"
+response = request.urlopen(url1)
+law = response.read().decode('utf8')
+#performing stripping of the text
+law1=law.rstrip()
+#converting the text into lowercase
+law1=law1.lower()
+#code for stopwords
+stop_words1 = set(stopwords.words('english')) 
+#performing Tokenisation of the code
+word_tokens1 = word_tokenize(law1) 
+filtered_sentence1 = [w for w in word_tokens1 if not w in stop_words1] 
+filtered_sentence1 = [] 
+for w in word_tokens1: 
+    if w not in stop_words1: 
+        filtered_sentence1.append(w)
+wordsAlice = [word for word in filtered_sentence1 if word.isalpha()]
+detokenizer1 = Detok()
+wordsAlice1=detokenizer1.detokenize(wordsAlice)
+x2=[]
+
+#For Loop for the segmentation into 200 rows and 150 columns
+for i in range (0,200*150,150):
+     x2.append(words[i:i+150])
+b=[1]*200
+
+
+#url3 Democracy and Education: An Introduction to the Philosophy of Education by Dewey
+url2="http://www.gutenberg.org/cache/epub/852/pg852.txt"
+response = request.urlopen(url2)
+saw = response.read().decode('utf8')
+#stripping the text
+saw1=saw.rstrip()
+#converting the text to lower case
+saw1=saw1.lower()
+#removing all the stopwords
+stop_words2 = set(stopwords.words('english')) 
+#tokenize the text
+word_tokens2 = word_tokenize(saw1)
+ 
+filtered_sentence2 = [w for w in word_tokens2 if not w in stop_words2] 
+filtered_sentence2 = [] 
+for w in word_tokens2: 
+    if w not in stop_words2: 
+        filtered_sentence2.append(w) 
+wordsDemo = [word for word in filtered_sentence2 if word.isalpha()]
+detokenizer2 = Detok()
+wordsDemo1=detokenizer2.detokenize(wordsDemo)
+x3=[]
+
+#For Loop for the segmentation into 200 rows and 150 columns
+for i in range (0,200*150,150):
+     x3.append(words[i:i+150])
+c=[2]*200
+
+#Merging Books and Labels
+Merge=x1+x2+x3
+
+
+import pandas as pd
+
+#creating the numpy as array of the Merged list
+Documents=np.asarray(Merge)
+#Merging all the lables first 200 for 0, again 200 for 1, again 200 for 2
+Label=a+b+c
+#creating a numpy as array for the lables
+Label=np.asarray(Label)
+#appending the lables as well 150 segments of the text together
+DocMerge=np.append(Documents,Label[:,None],axis=1)
+
+#importing the Random Package
+import random
+#shuffling the merged document
+random.shuffle(DocMerge)
+
+AfterLabel=DocMerge[:,-1:]
+AfterDoc=DocMerge[:,:150]
+
+##converting to dataframe for segments
+df=pd.DataFrame(AfterDoc)
+#converting to dataframe for labels
+y=pd.DataFrame(AfterLabel)
+
+
+df=[" ".join(c) for c in df.values]
+df=pd.DataFrame(df)
+
+#importing various modules of scikit-learn's
+from sklearn.model_selection import train_test_split
+from sklearn import svm
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from  sklearn.metrics  import accuracy_score
+
+ 
+#Bagofwords
+test_bag=['Benjamin',
+          'Dracula']
+np_bag=np.array(test_bag)
+
+np_bag1=pd.DataFrame(np_bag)
+count_vect = CountVectorizer()
+X_train_counts = (count_vect.fit_transform(df[0]))
+bagtest=(count_vect.transform(np_bag1[0]))
+print(bagtest)
+X_train, X_test, y_train, y_test = train_test_split(X_train_counts,y,test_size=.10 )
+clf = MultinomialNB().fit(X_train, y_train) 
+predicted=clf.predict(bagtest)
+print(predicted)
+#print(accuracy_score(y_test,predicted))
+#
+##k neighbour BOW
+#from sklearn.neighbors import KNeighborsClassifier  
+#classifier = KNeighborsClassifier(n_neighbors=5)  
+#cl=classifier.fit(X_train, y_train)
+#predict=cl.predict(X_test)
+#print(accuracy_score(y_test,predict))
+#TFIDF
+vectorizer=TfidfVectorizer()
+X=vectorizer.fit_transform(df[0])
+
+test_arr=[' ',
+          'Dracula']
+np_tarr=np.array(test_arr)
+#print(type(np_tarr))
+#print(np_tarr.shape)
+np_tarr1=pd.DataFrame(np_tarr)
+x1=vectorizer.transform(np_tarr1[0])
+
+tfidf_transformer = TfidfTransformer()
+X_train_tfidf = tfidf_transformer.fit_transform(X)
+
+x2 = tfidf_transformer.fit_transform(x1)
+#print(x2)
+#X_test=x21
+X_train, X_test, y_train, y_test = train_test_split(X_train_tfidf,y,test_size=.20 )
+clf = MultinomialNB().fit(X_train, y_train) 
+
+predicted=clf.predict(X_test)
+#print(predicted)
+#print(accuracy_score(y_test,predicted))
+
+
+#print(predicted)
+
+
+##TFIDF neighbour 
+#from sklearn.neighbors import KNeighborsClassifier  
+#classifier = KNeighborsClassifier(n_neighbors=5)  
+#c1=classifier.fit(X_train, y_train)
+#predic=c1.predict(X_test)
+#print(accuracy_score(y_test,predic))
+
+
+
